@@ -77,21 +77,23 @@ gain = np.array([trend_gain.get(antenna, ti) for ti in tu])
 
 
 # Plot the data.
+kADC = 256 / 3.3 * 280E-03 / 37.
 pl.style.use("deps/mplstyle-l3/style/l3.mplstyle")
 pl.figure()
 K = (day_solar >= 271.5) & (day_solar <= 273.5)
 t = day_solar[K]
 t -= t[0]
-pl.plot(t, 10**((power[K]-np.mean(power[K]))/10), "ko")
-pl.plot(t, 10**((model[K]-np.mean(model[K]))/10), "r-", linewidth=2)
+r = np.mean(power[K]) - np.mean(model[K])
+pl.plot(t, 10**((power[K])/10) * kADC * 1E+12, "ko")
+pl.plot(t, 10**((model[K] + r)/10) * kADC* 1E+12, "r-", linewidth=2)
 pl.xlabel("solar time (day)")
-pl.ylabel("normalized PSD")
+pl.ylabel("PSD (mV$^2$ / MHz)")
 pl.savefig("exGain.png")
 
 pl.figure()
-pl.plot(t, gain[K], "ko")
+pl.plot(t, 10**(gain[K] / 20.) / 1E+06, "ko")
 pl.xlabel("solar time (day)")
-pl.ylabel("gain, $\overline{G}_V$ (dB ref. V$/\sqrt{Hz}$)")
+pl.ylabel("gain, $\overline{G}_V$ (V / $\mu$V)")
 pl.savefig("exGain2.png")
 
 pl.show()
