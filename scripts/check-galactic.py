@@ -6,14 +6,16 @@ import time
 import os
 import numpy as np
 from scipy.interpolate import interp1d
-import pylab as pl
+import matplotlib.pyplot as pl
+import trend_gain
+
 
 # Time origin, in seconds UNIX.
 tfirst = calendar.timegm(time.strptime("01 Jan 11 00", "%d %b %y %H"))
 day = 1./(24.*60.*60.)
 
 # Settings.
-Fref = 55E+06
+Fref = 75E+06
 antenna = 113
 
 # Get the antenna data.
@@ -52,38 +54,44 @@ def sideral2unix(ts):
 	D = (hsl-longitude/15-18.697374558)/24.06570982441908
 	return D/day+tref
 
+tu = data[:,0]
 dsl = unix2sideral(data[:,0])
 hsl = np.mod(dsl*24., 24.)
 day_solar = (data[:,0]-tfirst)*day+6./24.
 
 # Get the model.
-RL = 112.
 kB = 1.38E-23
-T = 297.
-
-fA, RA, XA = np.load("data/nec2/Zbutterfly.npy")
-fRA = interp1d(fA*1E+06, RA)
-fXA = interp1d(fA*1E+06, XA)
+RL = 112.5
+RN = 0.*1.5
+TE = 290.
+rZE = 0.7
 
 with open("data/skymap/skymap.00.{:.0f}.p".format(RL), "rb") as f:
 	d = pk.load(f)
-	model = []
 	i0 = np.argmin(np.absolute(d["frequencies"]-Fref*1E-06))
-	RA, XA = fRA(Fref), fXA(Fref)
-	R = ((RA+RL)**2+XA**2)/RL
-	y = 10*np.log10(2*R*d["flux"][i0,:]+4.*(RL+RA)*kB*T)
+	y = 10*np.log10(RL*d["flux"][i0,:]+0.5*kB*TE*RL*rZE)
 	f = interp1d(d["lst"], y)
 	model = f(hsl)
 
+gain = np.array([trend_gain.get(antenna, ti) for ti in tu])
+
+
 # Plot the data.
+pl.style.use("deps/mplstyle-l3/style/l3.mplstyle")
 pl.figure()
-K = (day_solar >= 271.5) & (day_solar <= 272.5)
-pl.plot(day_solar[K], power[K]-np.mean(power[K]), "ko")
-pl.plot(day_solar[K], model[K]-np.mean(model[K]), "r.")
-pl.grid(True)
+K = (day_solar >= 271.5) & (day_solar <= 273.5)
+t = day_solar[K]
+t -= t[0]
+pl.plot(t, 10**((power[K]-np.mean(power[K]))/10), "ko")
+pl.plot(t, 10**((model[K]-np.mean(model[K]))/10), "r-", linewidth=2)
+pl.xlabel("solar time (day)")
+pl.ylabel("normalized PSD")
+pl.savefig("exGain.png")
 
 pl.figure()
-pl.plot(day_solar, power-model, "k.")
-pl.grid(True)
+pl.plot(t, gain[K], "ko")
+pl.xlabel("solar time (day)")
+pl.ylabel("gain, $\overline{G}_V$ (dB ref. V$/\sqrt{Hz}$)")
+pl.savefig("exGain2.png")
 
 pl.show()

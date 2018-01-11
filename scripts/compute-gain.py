@@ -18,6 +18,7 @@ polar = 0.
 RL = 112.5
 RN = 0.*1.5
 TE = 290.
+rZE = 0.7
 Fref = np.linspace(55., 95., 9)*1E+06
 antenna = 105
 # antenna = 135
@@ -122,7 +123,7 @@ with open("data/skymap/skymap.{:02.0f}.{:.0f}.p".format(polar, RL), "rb") as f:
     model = []
     for fi in Fref:
         i0 = np.argmin(np.absolute(d["frequencies"]-fi*1E-06))
-        y = 10*np.log10(RL*d["flux"][i0,:]+4.*RN*kB*T+0.5*kB*TE*RL)
+        y = 10*np.log10(RL*d["flux"][i0,:]+4.*RN*kB*T+0.5*kB*TE*RL*rZE)
         f = interp1d(d["lst"], y)
         model.append(f(hsl))
 model = np.array(model)

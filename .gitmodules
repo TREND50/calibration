@@ -1,0 +1,3 @@
+[submodule "mplstyle-l3"]
+	path = deps/mplstyle-l3
+	url = https://github.com/niess/mplstyle-l3.git
