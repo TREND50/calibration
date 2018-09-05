@@ -80,7 +80,7 @@ gain = np.array([trend_gain.get(antenna, ti) for ti in tu])
 kADC = 256 / 3.3 * 280E-03 / 37.
 pl.style.use("deps/mplstyle-l3/style/l3.mplstyle")
 pl.figure()
-K = (day_solar >= 271.5) & (day_solar <= 273.5)
+K = (day_solar >= 236.5) & (day_solar <= 246.5)
 t = day_solar[K]
 t -= t[0]
 r = np.mean(power[K]) - np.mean(model[K])

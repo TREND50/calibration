@@ -1,6 +1,9 @@
 # Ignore all data (too big)
 data
 
+# Ignore plots
+*.png
+
 # Ignore Python bytecodes
 Lib/*.pyc
 Lib/*.pyo
